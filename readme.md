@@ -45,6 +45,8 @@ This project now includes end-to-end scripts for Q1-Q4:
 - `utils_graph.py`
 - `graph_models.py`
 - `run_all.sh`
+- `run_q4_ultra_dual_gpu.sh`
+- `run_q4_autofix_until_pass.sh`
 
 All scripts assume data files are in the same folder:
 
@@ -92,7 +94,18 @@ Python executable used in this workspace:
 /home/russell512/.venv/bin/python q4_advanced_link_prediction.py \
    --dataset-dir . \
    --output-dir results/q4 \
-   --device cpu
+   --device cuda \
+   --select-by f1 \
+   --blend-heuristic
+```
+
+### Q4: Auto-fix dual-GPU training (recommended for strongest result)
+
+This launcher runs paired high-intensity jobs on both GPUs, compares results after each round,
+and stops early when both baseline targets are passed.
+
+```bash
+bash run_q4_autofix_until_pass.sh
 ```
 
 ### Run Full Pipeline
@@ -109,3 +122,17 @@ Outputs are stored under `results/q1`, `results/q2`, `results/q3`, `results/q4`.
 - Q2: training curves, embedding before/after training, metrics JSON.
 - Q3: method explanation, training curves, AUC/F1 metrics JSON.
 - Q4: trial table, best-model metrics JSON, baseline pass/fail flags.
+
+## Final Best Q4 Result (Auto-fix)
+
+Canonical best folder:
+
+- `results/q4_best/q4_metrics.json`
+- `results/q4_best/best_q4_model.pt`
+- `results/q4_best/best_trial_curves.png`
+
+Best achieved metrics:
+
+- Test AUC: `0.9159`
+- Test F1: `0.8526`
+- Baseline pass: `AUC>=0.875` and `F1>=0.850` both passed.

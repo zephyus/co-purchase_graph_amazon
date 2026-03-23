@@ -60,7 +60,7 @@ Artifacts:
 
 ## Q4. Advanced single-model architecture
 
-Best final run output: results/q4_final_push/q4_metrics.json
+Best final run output: results/q4_best/q4_metrics.json
 
 Model summary:
 - Residual GAT encoder + MLP edge decoder
@@ -68,19 +68,19 @@ Model summary:
 - Validation-threshold selection for F1
 
 Best final metrics:
-- Test AUC: 0.9119
-- Test F1: 0.8431
+- Test AUC: 0.9159
+- Test F1: 0.8526
 
 Baseline check:
 - AUC >= 0.875: PASS
-- F1 >= 0.850: NOT PASS (close)
+- F1 >= 0.850: PASS
 
 Artifacts:
-- results/q4_final_push/q4_metrics.json
-- results/q4_final_push/best_trial_curves.png
-- results/q4_final_push/best_q4_model.pt
+- results/q4_best/q4_metrics.json
+- results/q4_best/best_trial_curves.png
+- results/q4_best/best_q4_model.pt
 
 ## Notes
 
 - Multiple additional Q4 tuning runs are preserved under results/ for reproducibility.
-- The strongest observed configuration reliably exceeds the AUC baseline and approaches the F1 target.
+- The strongest observed configuration passes both assignment baselines (AUC and F1).

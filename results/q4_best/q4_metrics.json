@@ -1,0 +1,86 @@
+{
+  "seed": 2222,
+  "device": "cuda",
+  "split": {
+    "train_ratio": 0.8,
+    "val_ratio": 0.1,
+    "test_ratio": 0.1,
+    "train_positive_edges": 196688,
+    "val_positive_edges": 24586,
+    "test_positive_edges": 24587
+  },
+  "search": {
+    "num_trials": 1,
+    "quick_mode": false,
+    "loss_type": "bce",
+    "focal_gamma": 2.0,
+    "focal_alpha": 0.25,
+    "bce_pos_weight": 1.0,
+    "trials": [
+      {
+        "trial_id": 1,
+        "hidden_dim": 56,
+        "heads": 2,
+        "dropout": 0.18,
+        "embed_dim": 144,
+        "decoder_hidden_dim": 224,
+        "lr": 0.0006,
+        "weight_decay": 5e-05,
+        "neg_ratio": 1.0,
+        "hard_fraction": 0.3,
+        "best_epoch": 93,
+        "best_val_auc": 0.9142066972181426,
+        "val_auc_selected": 0.9142066922551286,
+        "val_f1_selected": 0.8499815128334861,
+        "test_auc_selected": 0.9158626428805601,
+        "test_f1_selected": 0.8526429842886428
+      }
+    ]
+  },
+  "best_trial": {
+    "trial_id": 1,
+    "best_epoch": 93,
+    "best_val_auc": 0.9142066972181426,
+    "config": {
+      "hidden_dim": 56,
+      "heads": 2,
+      "dropout": 0.18,
+      "embed_dim": 144,
+      "decoder_hidden_dim": 224,
+      "lr": 0.0006,
+      "weight_decay": 5e-05,
+      "neg_ratio": 1.0,
+      "hard_fraction": 0.3
+    }
+  },
+  "threshold_selected_on_val": 0.0575,
+  "blend": {
+    "enabled": false,
+    "weight": 0.0,
+    "threshold": 0.0575
+  },
+  "val_metrics_at_selected_threshold": {
+    "precision": 0.8148576545651282,
+    "recall": 0.8882697470104938,
+    "f1": 0.8499815128334861,
+    "accuracy": 0.8432237858944115,
+    "tp": 21839.0,
+    "fp": 4962.0,
+    "tn": 19624.0,
+    "fn": 2747.0
+  },
+  "test": {
+    "auc": 0.9158626428805601,
+    "f1": 0.8526429842886428,
+    "precision": 0.8131527475366277,
+    "recall": 0.8961646398503275,
+    "accuracy": 0.8451214056208566
+  },
+  "baseline_targets": {
+    "auc_target": 0.875,
+    "f1_target": 0.85,
+    "pass_auc": true,
+    "pass_f1": true,
+    "pass_both": true
+  }
+}

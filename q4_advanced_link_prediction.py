@@ -6,6 +6,7 @@ from typing import Dict, List, Tuple
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
+import torch.nn.functional as F
 
 from graph_models import AdvancedGATEncoder, EdgeMLPDecoder, LinkPredictionModel
 from utils_graph import (
@@ -47,6 +48,11 @@ DEFAULT_TRIALS = [
     TrialConfig(32, 4, 0.25, 96, 160, 0.0012, 5e-5, 1.0, 0.45),
     TrialConfig(40, 4, 0.25, 96, 192, 0.0009, 5e-5, 1.0, 0.40),
     TrialConfig(48, 2, 0.20, 128, 192, 0.0007, 1e-4, 1.2, 0.60),
+    TrialConfig(48, 2, 0.18, 128, 224, 0.0007, 5e-5, 1.0, 0.35),
+    TrialConfig(56, 2, 0.18, 144, 224, 0.0006, 5e-5, 1.0, 0.30),
+    TrialConfig(64, 2, 0.15, 160, 256, 0.0006, 5e-5, 1.0, 0.30),
+    TrialConfig(48, 4, 0.20, 128, 224, 0.0007, 1e-4, 1.0, 0.35),
+    TrialConfig(40, 4, 0.18, 128, 192, 0.0008, 5e-5, 1.1, 0.40),
 ]
 
 
@@ -85,6 +91,44 @@ def evaluate_split(
     }
 
 
+def heuristic_edge_scores(edges: np.ndarray, neighbors: List[set], degree: np.ndarray) -> np.ndarray:
+    scores = np.zeros(len(edges), dtype=np.float64)
+    for i, (u_raw, v_raw) in enumerate(edges.tolist()):
+        u = int(u_raw)
+        v = int(v_raw)
+        nu = neighbors[u]
+        nv = neighbors[v]
+
+        cn = len(nu.intersection(nv))
+        un = len(nu.union(nv))
+        jaccard = (cn / un) if un > 0 else 0.0
+        pa = degree[u] * degree[v]
+        deg_gap = abs(degree[u] - degree[v])
+
+        scores[i] = 1.2 * jaccard + 0.25 * np.log1p(pa) - 0.02 * np.log1p(deg_gap)
+    return scores
+
+
+def normalize_by_val(scores: np.ndarray, val_min: float, val_max: float) -> np.ndarray:
+    return (scores - val_min) / (val_max - val_min + 1e-12)
+
+
+def build_model_from_cfg(cfg: TrialConfig, in_dim: int, device: torch.device) -> LinkPredictionModel:
+    encoder = AdvancedGATEncoder(
+        in_dim=in_dim,
+        hidden_dim=cfg.hidden_dim,
+        out_dim=cfg.embed_dim,
+        heads=cfg.heads,
+        dropout=cfg.dropout,
+    )
+    decoder = EdgeMLPDecoder(
+        dim=cfg.embed_dim,
+        hidden_dim=cfg.decoder_hidden_dim,
+        dropout=cfg.dropout,
+    )
+    return LinkPredictionModel(encoder=encoder, decoder=decoder).to(device)
+
+
 def train_one_trial(
     trial_id: int,
     cfg: TrialConfig,
@@ -100,6 +144,10 @@ def train_one_trial(
     patience: int,
     seed: int,
     train_pos_sample_ratio: float,
+    loss_type: str,
+    focal_gamma: float,
+    focal_alpha: float,
+    bce_pos_weight: float,
 ) -> Dict:
     torch.manual_seed(seed + trial_id)
 
@@ -116,7 +164,10 @@ def train_one_trial(
     optimizer = torch.optim.AdamW(model.parameters(), lr=cfg.lr, weight_decay=cfg.weight_decay)
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=max(epochs, 10))
 
-    criterion = torch.nn.BCEWithLogitsLoss()
+    if loss_type not in {"bce", "focal"}:
+        raise ValueError("loss_type must be one of: bce, focal")
+
+    pos_weight_tensor = torch.tensor(float(bce_pos_weight), device=device)
 
     rng = np.random.default_rng(seed + 1000 + trial_id)
     best_state = None
@@ -165,9 +216,24 @@ def train_one_trial(
             dim=0,
         )
 
-        loss = criterion(logits, labels)
+        logits = logits.clamp(min=-20.0, max=20.0)
+
+        if loss_type == "bce":
+            loss = F.binary_cross_entropy_with_logits(logits, labels, pos_weight=pos_weight_tensor)
+        else:
+            base = F.binary_cross_entropy_with_logits(logits, labels, reduction="none")
+            prob = torch.sigmoid(logits)
+            pt = prob * labels + (1.0 - prob) * (1.0 - labels)
+            alpha_t = focal_alpha * labels + (1.0 - focal_alpha) * (1.0 - labels)
+            focal_weight = alpha_t * torch.pow(1.0 - pt.clamp(min=1e-8), focal_gamma)
+            loss = (focal_weight * base).mean()
+
+        if not torch.isfinite(loss):
+            print(f"Trial {trial_id} | Epoch {epoch:03d} produced non-finite loss, aborting trial")
+            break
+
         loss.backward()
-        torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=2.0)
+        torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=2.0, foreach=False)
         optimizer.step()
         scheduler.step()
 
@@ -249,6 +315,12 @@ def main() -> None:
     parser.add_argument("--quick", action="store_true", help="Run a smaller search for smoke testing")
     parser.add_argument("--device", type=str, default="cpu", choices=["auto", "cpu", "cuda"])
     parser.add_argument("--train-pos-sample-ratio", type=float, default=0.30)
+    parser.add_argument("--loss-type", type=str, default="bce", choices=["bce", "focal"])
+    parser.add_argument("--focal-gamma", type=float, default=2.0)
+    parser.add_argument("--focal-alpha", type=float, default=0.25)
+    parser.add_argument("--bce-pos-weight", type=float, default=1.0)
+    parser.add_argument("--blend-heuristic", action="store_true")
+    parser.add_argument("--select-by", type=str, default="f1", choices=["f1", "auc"])
     parser.add_argument(
         "--single-trial-index",
         type=int,
@@ -302,61 +374,123 @@ def main() -> None:
 
     trial_results = []
     for i, cfg in enumerate(trials, start=1):
-        trial_out = train_one_trial(
-            trial_id=i,
-            cfg=cfg,
+        try:
+            trial_out = train_one_trial(
+                trial_id=i,
+                cfg=cfg,
+                x=x,
+                train_graph_edge_index=train_graph_edge_index,
+                train_pos=train_pos,
+                val_pos=val_pos,
+                val_neg=val_neg,
+                all_positive_set=all_positive_set,
+                neighbors=neighbors,
+                device=device,
+                epochs=args.epochs if not args.quick else min(args.epochs, 30),
+                patience=args.patience if not args.quick else min(args.patience, 10),
+                seed=args.seed,
+                train_pos_sample_ratio=args.train_pos_sample_ratio,
+                loss_type=args.loss_type,
+                focal_gamma=args.focal_gamma,
+                focal_alpha=args.focal_alpha,
+                bce_pos_weight=args.bce_pos_weight,
+            )
+            trial_results.append(trial_out)
+        except Exception as exc:
+            print(f"Trial {i} failed and was skipped: {exc}")
+
+    if not trial_results:
+        raise RuntimeError("All trials failed; no valid model to evaluate")
+
+    trial_eval_rows = []
+    degree = np.array([len(s) for s in neighbors], dtype=np.float64)
+    val_edges_all = np.concatenate([val_pos, val_neg], axis=0)
+    test_edges_all = np.concatenate([test_pos, test_neg], axis=0)
+    val_h_raw = heuristic_edge_scores(val_edges_all, neighbors, degree)
+    test_h_raw = heuristic_edge_scores(test_edges_all, neighbors, degree)
+    val_h_min = float(val_h_raw.min())
+    val_h_max = float(val_h_raw.max())
+    val_h = normalize_by_val(val_h_raw, val_h_min, val_h_max)
+    test_h = normalize_by_val(test_h_raw, val_h_min, val_h_max)
+
+    for r in trial_results:
+        cfg = r["config"]
+        model = build_model_from_cfg(cfg=cfg, in_dim=x.size(1), device=device)
+        model.load_state_dict(r["best_state"])
+
+        val_eval = evaluate_split(
+            model=model,
             x=x,
-            train_graph_edge_index=train_graph_edge_index,
-            train_pos=train_pos,
-            val_pos=val_pos,
-            val_neg=val_neg,
-            all_positive_set=all_positive_set,
-            neighbors=neighbors,
+            graph_edge_index=train_graph_edge_index,
+            pos_edges=val_pos,
+            neg_edges=val_neg,
             device=device,
-            epochs=args.epochs if not args.quick else min(args.epochs, 30),
-            patience=args.patience if not args.quick else min(args.patience, 10),
-            seed=args.seed,
-            train_pos_sample_ratio=args.train_pos_sample_ratio,
         )
-        trial_results.append(trial_out)
+        test_eval = evaluate_split(
+            model=model,
+            x=x,
+            graph_edge_index=train_graph_edge_index,
+            pos_edges=test_pos,
+            neg_edges=test_neg,
+            device=device,
+        )
 
-    best_trial = max(trial_results, key=lambda d: d["best_val_auc"])
+        threshold, val_metrics = find_best_threshold_by_f1(val_eval["y_true"], val_eval["y_prob"])
+        test_metrics_local = binary_metrics(test_eval["y_true"], test_eval["y_prob"], threshold)
+        blend_info = {
+            "enabled": False,
+            "weight": 0.0,
+            "threshold": float(threshold),
+        }
 
+        if args.blend_heuristic:
+            best_combo_f1 = float(val_metrics["f1"])
+            best_combo = (0.0, float(threshold), val_metrics)
+            for w in np.linspace(0.0, 0.5, 21):
+                val_mix = (1.0 - w) * val_eval["y_prob"] + w * val_h
+                thr, val_m = find_best_threshold_by_f1(val_eval["y_true"], val_mix)
+                if val_m["f1"] > best_combo_f1:
+                    best_combo_f1 = float(val_m["f1"])
+                    best_combo = (float(w), float(thr), val_m)
+
+            w_best, thr_best, val_m_best = best_combo
+            if w_best > 0.0:
+                test_mix = (1.0 - w_best) * test_eval["y_prob"] + w_best * test_h
+                test_metrics_local = binary_metrics(test_eval["y_true"], test_mix, thr_best)
+                test_eval["auc"] = float(roc_auc_binary(test_eval["y_true"], test_mix))
+                threshold = thr_best
+                val_metrics = val_m_best
+                blend_info = {
+                    "enabled": True,
+                    "weight": float(w_best),
+                    "threshold": float(thr_best),
+                }
+
+        trial_eval_rows.append(
+            {
+                "trial": r,
+                "val_auc": float(val_eval["auc"]),
+                "val_f1": float(val_metrics["f1"]),
+                "val_metrics": val_metrics,
+                "threshold": float(threshold),
+                "test_auc": float(test_eval["auc"]),
+                "test_metrics": test_metrics_local,
+                "blend": blend_info,
+            }
+        )
+
+    if args.select_by == "f1":
+        best_eval = max(trial_eval_rows, key=lambda t: (t["val_f1"], t["val_auc"]))
+    else:
+        best_eval = max(trial_eval_rows, key=lambda t: (t["val_auc"], t["val_f1"]))
+
+    best_trial = best_eval["trial"]
     best_cfg = best_trial["config"]
-    encoder = AdvancedGATEncoder(
-        in_dim=x.size(1),
-        hidden_dim=best_cfg.hidden_dim,
-        out_dim=best_cfg.embed_dim,
-        heads=best_cfg.heads,
-        dropout=best_cfg.dropout,
-    )
-    decoder = EdgeMLPDecoder(
-        dim=best_cfg.embed_dim,
-        hidden_dim=best_cfg.decoder_hidden_dim,
-        dropout=best_cfg.dropout,
-    )
-    best_model = LinkPredictionModel(encoder=encoder, decoder=decoder).to(device)
-    best_model.load_state_dict(best_trial["best_state"])
-
-    val_eval = evaluate_split(
-        model=best_model,
-        x=x,
-        graph_edge_index=train_graph_edge_index,
-        pos_edges=val_pos,
-        neg_edges=val_neg,
-        device=device,
-    )
-    test_eval = evaluate_split(
-        model=best_model,
-        x=x,
-        graph_edge_index=train_graph_edge_index,
-        pos_edges=test_pos,
-        neg_edges=test_neg,
-        device=device,
-    )
-
-    best_threshold, val_thr_metrics = find_best_threshold_by_f1(val_eval["y_true"], val_eval["y_prob"])
-    test_metrics = binary_metrics(test_eval["y_true"], test_eval["y_prob"], best_threshold)
+    best_threshold = float(best_eval["threshold"])
+    val_thr_metrics = best_eval["val_metrics"]
+    test_eval = {"auc": float(best_eval["test_auc"])}
+    test_metrics = best_eval["test_metrics"]
+    blend_summary = best_eval["blend"]
 
     target_auc = 0.875
     target_f1 = 0.850
@@ -368,6 +502,7 @@ def main() -> None:
     trials_table = []
     for r in trial_results:
         c = r["config"]
+        eval_row = next(v for v in trial_eval_rows if v["trial"]["trial_id"] == r["trial_id"])
         trials_table.append(
             {
                 "trial_id": int(r["trial_id"]),
@@ -382,6 +517,10 @@ def main() -> None:
                 "hard_fraction": float(c.hard_fraction),
                 "best_epoch": int(r["best_epoch"]),
                 "best_val_auc": float(r["best_val_auc"]),
+                "val_auc_selected": float(eval_row["val_auc"]),
+                "val_f1_selected": float(eval_row["val_f1"]),
+                "test_auc_selected": float(eval_row["test_auc"]),
+                "test_f1_selected": float(eval_row["test_metrics"]["f1"]),
             }
         )
 
@@ -399,6 +538,10 @@ def main() -> None:
         "search": {
             "num_trials": int(len(trial_results)),
             "quick_mode": bool(args.quick),
+            "loss_type": args.loss_type,
+            "focal_gamma": float(args.focal_gamma),
+            "focal_alpha": float(args.focal_alpha),
+            "bce_pos_weight": float(args.bce_pos_weight),
             "trials": trials_table,
         },
         "best_trial": {
@@ -418,6 +561,7 @@ def main() -> None:
             },
         },
         "threshold_selected_on_val": float(best_threshold),
+        "blend": blend_summary,
         "val_metrics_at_selected_threshold": val_thr_metrics,
         "test": {
             "auc": float(test_eval["auc"]),
