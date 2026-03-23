@@ -3,3 +3,12 @@ __pycache__/
 *.pyo
 *.pyd
 .DS_Store
+
+# intermediate experiment outputs (best artifacts are tracked under results/q4_best)
+results/q4_autofix/
+results/q4_perfect_gpu0/
+results/q4_perfect_gpu1/
+results/q4_sanity_f1/
+results/q4_ultra_gpu0_bce/
+results/q4_ultra_gpu1_bce/
+results/q4_ultra_gpu1_focal/
