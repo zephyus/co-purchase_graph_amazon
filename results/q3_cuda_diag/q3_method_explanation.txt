@@ -1,0 +1,1 @@
+Future co-purchase is approximated with edge row order as pseudo-time. Positive edges are split chronologically with ratio 0.70/0.15/0.15 for train/validation/test, so training only sees earlier edges and evaluation is on later edges. BCEWithLogitsLoss is used because link prediction is binary and this loss is numerically stable for logits-based training.

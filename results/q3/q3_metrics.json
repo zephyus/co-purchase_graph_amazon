@@ -1,0 +1,35 @@
+{
+  "seed": 42,
+  "device": "cuda",
+  "split": {
+    "train_ratio": 0.7,
+    "val_ratio": 0.15,
+    "test_ratio": 0.15,
+    "train_positive_edges": 172102,
+    "val_positive_edges": 36879,
+    "test_positive_edges": 36880,
+    "val_negative_edges": 36879,
+    "test_negative_edges": 36880
+  },
+  "loss_function": "BCEWithLogitsLoss",
+  "best_epoch": 5,
+  "best_val_auc": 0.659234834441474,
+  "threshold_selected_on_val": 0.07,
+  "val_metrics_at_selected_threshold": {
+    "precision": 0.5000135582189924,
+    "recall": 1.0,
+    "f1": 0.6666787183075051,
+    "accuracy": 0.5000271157027034,
+    "tp": 36879.0,
+    "fp": 36877.0,
+    "tn": 2.0,
+    "fn": 0.0
+  },
+  "test": {
+    "auc": 0.6668095605110789,
+    "f1": 0.6666967957694294,
+    "precision": 0.5000338960070504,
+    "recall": 1.0,
+    "accuracy": 0.5000677874186551
+  }
+}

@@ -1,0 +1,83 @@
+{
+  "num_nodes": 13752,
+  "num_edges": 245861,
+  "num_features": 767,
+  "num_classes": 10,
+  "graph_density": 0.0026002762758509414,
+  "isolated_nodes": 281,
+  "degree": {
+    "min": 0,
+    "max": 2992,
+    "mean": 35.7563990692263,
+    "median": 22.0,
+    "std": 70.30561243785533,
+    "p95": 101.0,
+    "p99": 244.48999999999978
+  },
+  "feature_sparsity": {
+    "global_density": 0.3484220951054743,
+    "global_sparsity": 0.6515779048945257,
+    "nonzero_features_per_node_mean": 267.2397469458988,
+    "nonzero_features_per_node_median": 204.0,
+    "nonzero_features_per_node_std": 201.63105539832216
+  },
+  "connected_components": {
+    "count": 314,
+    "largest_component_size": 13381,
+    "smallest_component_size": 1,
+    "top_10_sizes": [
+      13381,
+      8,
+      7,
+      5,
+      4,
+      4,
+      3,
+      3,
+      3,
+      3
+    ]
+  },
+  "label_distribution": {
+    "0": {
+      "count": 436,
+      "class_name": "Desktops"
+    },
+    "1": {
+      "count": 2142,
+      "class_name": "Data Storage"
+    },
+    "2": {
+      "count": 1414,
+      "class_name": "Laptops"
+    },
+    "3": {
+      "count": 542,
+      "class_name": "Monitors"
+    },
+    "4": {
+      "count": 5158,
+      "class_name": "Computer Components"
+    },
+    "5": {
+      "count": 308,
+      "class_name": "Video Projectors"
+    },
+    "6": {
+      "count": 487,
+      "class_name": "Routers"
+    },
+    "7": {
+      "count": 818,
+      "class_name": "Tablets"
+    },
+    "8": {
+      "count": 2156,
+      "class_name": "Networking Products"
+    },
+    "9": {
+      "count": 291,
+      "class_name": "Webcams"
+    }
+  }
+}

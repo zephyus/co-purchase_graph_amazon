@@ -1,0 +1,87 @@
+{
+  "seed": 42,
+  "device": "cuda",
+  "split": {
+    "train_ratio": 0.7,
+    "val_ratio": 0.15,
+    "test_ratio": 0.15,
+    "train_positive_edges": 172102,
+    "val_positive_edges": 36879,
+    "test_positive_edges": 36880
+  },
+  "search": {
+    "num_trials": 2,
+    "quick_mode": true,
+    "trials": [
+      {
+        "trial_id": 1,
+        "hidden_dim": 24,
+        "heads": 2,
+        "dropout": 0.3,
+        "embed_dim": 64,
+        "decoder_hidden_dim": 96,
+        "lr": 0.002,
+        "weight_decay": 5e-05,
+        "neg_ratio": 1.0,
+        "hard_fraction": 0.4,
+        "best_epoch": 3,
+        "best_val_auc": 0.7365706879536116
+      },
+      {
+        "trial_id": 2,
+        "hidden_dim": 32,
+        "heads": 2,
+        "dropout": 0.3,
+        "embed_dim": 64,
+        "decoder_hidden_dim": 96,
+        "lr": 0.0015,
+        "weight_decay": 0.0001,
+        "neg_ratio": 1.0,
+        "hard_fraction": 0.5,
+        "best_epoch": 4,
+        "best_val_auc": 0.6523529104170289
+      }
+    ]
+  },
+  "best_trial": {
+    "trial_id": 1,
+    "best_epoch": 3,
+    "best_val_auc": 0.7365706879536116,
+    "config": {
+      "hidden_dim": 24,
+      "heads": 2,
+      "dropout": 0.3,
+      "embed_dim": 64,
+      "decoder_hidden_dim": 96,
+      "lr": 0.002,
+      "weight_decay": 5e-05,
+      "neg_ratio": 1.0,
+      "hard_fraction": 0.4
+    }
+  },
+  "threshold_selected_on_val": 0.5025000000000001,
+  "val_metrics_at_selected_threshold": {
+    "precision": 0.6077700362628855,
+    "recall": 0.808942758751593,
+    "f1": 0.6940731693126024,
+    "accuracy": 0.6434420673011741,
+    "tp": 29833.0,
+    "fp": 19253.0,
+    "tn": 17626.0,
+    "fn": 7046.0
+  },
+  "test": {
+    "auc": 0.7339020618109504,
+    "f1": 0.6890010279408234,
+    "precision": 0.6052372352651453,
+    "recall": 0.7996746203904556,
+    "accuracy": 0.6390455531453362
+  },
+  "baseline_targets": {
+    "auc_target": 0.875,
+    "f1_target": 0.85,
+    "pass_auc": false,
+    "pass_f1": false,
+    "pass_both": false
+  }
+}
