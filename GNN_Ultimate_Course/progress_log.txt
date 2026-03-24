@@ -1,0 +1,37 @@
+# Course Progress Log: The Ultimate GNN Textbook
+
+## Current Status
+- **Phase 1: Python & Logic (Completed)**
+  - Chapter 1: Variables and Data Types (Dynamic typing, Mutability).
+  - Chapter 2: Conditions and Loops (Time complexity, Early Return).
+  - Chapter 3: Functions (Abstraction, Side Effects, Type Hints).
+  - Chapter 4: Lists & Dictionaries (O(1) Hash Maps vs O(N) Arrays).
+  - Chapter 5: Pandas (Vectorization, Boolean Masking, NaN handling).
+
+## Next Up
+- **Phase 2: ML Foundations (Completed)**
+  - Chapter 6: ML Basics (Data, Model, Loss, Optimizer concept).
+  - Chapter 7: Train/Val/Test Splits (Overfitting prevention).
+  - Chapter 8: Accuracy Illusion (Confusion Matrix, TP/TN/FP/FN).
+  - Chapter 9: F1 & ROC-AUC (Harmonic mean vs Arithmetic mean, Thresholds search).
+  - Chapter 10: Logistic Regression & Sigmoid (Logits to probability, NaN explosion).
+
+## Next Up
+- **Phase 3: Deep Learning & PyTorch (Completed)**
+  - Chapter 11: NN Basics (Hidden Layers, ReLU, Linear).
+  - Chapter 12: Tensors (Shape, Broadcasting, requires_grad).
+  - Chapter 13: Backprop & Adam (Chain rule, zero_grad, step).
+  - Chapter 14: Loss Functions (Cross Entropy, log-sum-exp, pos_weight).
+  - Chapter 15: Training Loop (Train/Eval mode, dropout).
+
+## Next Up
+- **Phase 4: Graph Theory (Completed)**
+  - Chapter 16: Graph Basics
+  - Chapter 17: NetworkX & Degree
+  - Chapter 18: Node Features
+  - Chapter 19: Link Prediction
+  - Chapter 20: Jaccard & Adamic-Adar
+
+## Next Up
+- **Phase 5: GNN Era (Pending)**
+  - Chapter 21: DeepWalk / Node2Vec
