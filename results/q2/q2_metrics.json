@@ -10,66 +10,66 @@
     "test_count": 5498
   },
   "hyperparameters": {
-    "epochs": 120,
-    "patience": 30,
+    "epochs": 300,
+    "patience": 40,
     "lr": 0.005,
     "weight_decay": 0.0005,
     "dropout": 0.5,
     "hidden_dim": 32,
     "heads": 8
   },
-  "best_epoch": 117,
-  "best_val_acc": 0.8965116143226624,
-  "test_loss": 0.341878205537796,
-  "test_acc": 0.8899599313735962,
+  "best_epoch": 299,
+  "best_val_acc": 0.9174418449401855,
+  "test_loss": 0.28594931960105896,
+  "test_acc": 0.9136049151420593,
   "per_class": {
     "0": {
-      "accuracy": 0.9059633027522935,
+      "accuracy": 0.9403669724770642,
       "class_name": "Desktops",
       "count": 436
     },
     "1": {
-      "accuracy": 0.8734827264239029,
+      "accuracy": 0.927170868347339,
       "class_name": "Data Storage",
       "count": 2142
     },
     "2": {
-      "accuracy": 0.9766619519094767,
+      "accuracy": 0.9809052333804809,
       "class_name": "Laptops",
       "count": 1414
     },
     "3": {
-      "accuracy": 0.7970479704797048,
+      "accuracy": 0.9317343173431735,
       "class_name": "Monitors",
       "count": 542
     },
     "4": {
-      "accuracy": 0.9319503683598294,
+      "accuracy": 0.9422256688639007,
       "class_name": "Computer Components",
       "count": 5158
     },
     "5": {
-      "accuracy": 0.961038961038961,
+      "accuracy": 0.9675324675324676,
       "class_name": "Video Projectors",
       "count": 308
     },
     "6": {
-      "accuracy": 0.5420944558521561,
+      "accuracy": 0.6509240246406571,
       "class_name": "Routers",
       "count": 487
     },
     "7": {
-      "accuracy": 0.9376528117359413,
+      "accuracy": 0.9645476772616137,
       "class_name": "Tablets",
       "count": 818
     },
     "8": {
-      "accuracy": 0.8682745825602969,
+      "accuracy": 0.8710575139146568,
       "class_name": "Networking Products",
       "count": 2156
     },
     "9": {
-      "accuracy": 0.8865979381443299,
+      "accuracy": 0.9243986254295533,
       "class_name": "Webcams",
       "count": 291
     }

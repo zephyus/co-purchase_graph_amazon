@@ -1,115 +1,86 @@
 {
-  "seed": 42,
+  "seed": 2222,
   "device": "cuda",
   "split": {
-    "train_ratio": 0.7,
-    "val_ratio": 0.15,
-    "test_ratio": 0.15,
-    "train_positive_edges": 172102,
-    "val_positive_edges": 36879,
-    "test_positive_edges": 36880
+    "train_ratio": 0.8,
+    "val_ratio": 0.1,
+    "test_ratio": 0.1,
+    "train_positive_edges": 196688,
+    "val_positive_edges": 24586,
+    "test_positive_edges": 24587
   },
   "search": {
-    "num_trials": 4,
+    "num_trials": 1,
     "quick_mode": false,
+    "loss_type": "bce",
+    "focal_gamma": 2.0,
+    "focal_alpha": 0.25,
+    "bce_pos_weight": 1.0,
     "trials": [
       {
         "trial_id": 1,
-        "hidden_dim": 24,
+        "hidden_dim": 56,
         "heads": 2,
-        "dropout": 0.3,
-        "embed_dim": 64,
-        "decoder_hidden_dim": 96,
-        "lr": 0.002,
+        "dropout": 0.18,
+        "embed_dim": 144,
+        "decoder_hidden_dim": 224,
+        "lr": 0.0006,
         "weight_decay": 5e-05,
         "neg_ratio": 1.0,
-        "hard_fraction": 0.4,
-        "best_epoch": 62,
-        "best_val_auc": 0.8732907252037742
-      },
-      {
-        "trial_id": 2,
-        "hidden_dim": 32,
-        "heads": 2,
-        "dropout": 0.3,
-        "embed_dim": 64,
-        "decoder_hidden_dim": 96,
-        "lr": 0.0015,
-        "weight_decay": 0.0001,
-        "neg_ratio": 1.0,
-        "hard_fraction": 0.5,
-        "best_epoch": 80,
-        "best_val_auc": 0.8527203949871527
-      },
-      {
-        "trial_id": 3,
-        "hidden_dim": 24,
-        "heads": 4,
-        "dropout": 0.35,
-        "embed_dim": 80,
-        "decoder_hidden_dim": 128,
-        "lr": 0.0015,
-        "weight_decay": 0.0001,
-        "neg_ratio": 1.2,
-        "hard_fraction": 0.5,
-        "best_epoch": 5,
-        "best_val_auc": 0.7262931649677817
-      },
-      {
-        "trial_id": 4,
-        "hidden_dim": 32,
-        "heads": 4,
-        "dropout": 0.35,
-        "embed_dim": 96,
-        "decoder_hidden_dim": 128,
-        "lr": 0.001,
-        "weight_decay": 0.0001,
-        "neg_ratio": 1.2,
-        "hard_fraction": 0.6,
-        "best_epoch": 38,
-        "best_val_auc": 0.8438127050395248
+        "hard_fraction": 0.3,
+        "best_epoch": 90,
+        "best_val_auc": 0.9161795325051245,
+        "val_auc_selected": 0.9161795300236175,
+        "val_f1_selected": 0.8495615882370481,
+        "test_auc_selected": 0.9181416066919635,
+        "test_f1_selected": 0.8529893685930315
       }
     ]
   },
   "best_trial": {
     "trial_id": 1,
-    "best_epoch": 62,
-    "best_val_auc": 0.8732907252037742,
+    "best_epoch": 90,
+    "best_val_auc": 0.9161795325051245,
     "config": {
-      "hidden_dim": 24,
+      "hidden_dim": 56,
       "heads": 2,
-      "dropout": 0.3,
-      "embed_dim": 64,
-      "decoder_hidden_dim": 96,
-      "lr": 0.002,
+      "dropout": 0.18,
+      "embed_dim": 144,
+      "decoder_hidden_dim": 224,
+      "lr": 0.0006,
       "weight_decay": 5e-05,
       "neg_ratio": 1.0,
-      "hard_fraction": 0.4
+      "hard_fraction": 0.3
     }
   },
-  "threshold_selected_on_val": 0.1275,
+  "threshold_selected_on_val": 0.0575,
+  "blend": {
+    "enabled": false,
+    "weight": 0.0,
+    "threshold": 0.0575
+  },
   "val_metrics_at_selected_threshold": {
-    "precision": 0.7411711610064312,
-    "recall": 0.8906152552943409,
-    "f1": 0.8090499297972724,
-    "accuracy": 0.7897990726429676,
-    "tp": 32845.0,
-    "fp": 11470.0,
-    "tn": 25409.0,
-    "fn": 4034.0
+    "precision": 0.8025173611111112,
+    "recall": 0.9024648173757422,
+    "f1": 0.8495615882370481,
+    "accuracy": 0.8401936061173025,
+    "tp": 22188.0,
+    "fp": 5460.0,
+    "tn": 19126.0,
+    "fn": 2398.0
   },
   "test": {
-    "auc": 0.870224416425318,
-    "f1": 0.8045002163560594,
-    "precision": 0.7393705260765822,
-    "recall": 0.8822125813449024,
-    "accuracy": 0.7856155097613883
+    "auc": 0.9181416066919635,
+    "f1": 0.8529893685930315,
+    "precision": 0.8023585074733861,
+    "recall": 0.9104404766746654,
+    "accuracy": 0.8430878106316346
   },
   "baseline_targets": {
     "auc_target": 0.875,
     "f1_target": 0.85,
-    "pass_auc": false,
-    "pass_f1": false,
-    "pass_both": false
+    "pass_auc": true,
+    "pass_f1": true,
+    "pass_both": true
   }
 }
